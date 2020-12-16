@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const grid = document.querySelector('.grid');
   const flagsLeft = document.querySelector('#flags-left');
   const result = document.querySelector('#result');
-  let width = 10;
-  let bombAmount = 20;
+  const width = 10;
+  const bombAmount = 20;
   let flags = 0;
   let squares = [];
   let isGameOver = false;
@@ -38,25 +38,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //add numbers
     for (let i = 0; i < squares.length; i++) {
-      let total = 0;
       const isLeftEdge = (i % width === 0);
       const isRightEdge = (i % width === width - 1);
 
       if (squares[i].classList.contains('valid')) {
-        if (!isLeftEdge && squares[i - 1].classList.contains('bomb') ||
-          (i >= 10 && !isRightEdge && squares[i + 1 - width].classList.contains('bomb')) ||
-          (i >= 10 && squares[i - width].classList.contains('bomb')) ||
-          (i >= 11 && !isLeftEdge && squares[i - 1 - width].classList.contains('bomb')) ||
-          (i <= 98 && !isRightEdge && squares[i + 1].classList.contains('bomb')) ||
-          (i <= 89 && !isLeftEdge && squares[i - 1 + width].classList.contains('bomb')) ||
-          (i <= 88 && !isRightEdge && squares[i + 1 + width].classList.contains('bomb')) ||
-          (i <= 89 && squares[i + width].classList.contains('bomb'))) {
-          total++;
-        }
-
+        let total = calculateTotal(i, isLeftEdge, isRightEdge);
         squares[i].setAttribute('data', total);
       }
     }
+  }
+
+
+  function calculateTotal(i, isLeftEdge, isRightEdge) {
+    let total = 0;
+    !isLeftEdge && squares[i - 1].classList.contains('bomb') && total++;
+    i >= 10 && !isRightEdge && squares[i + 1 - width].classList.contains('bomb') && total++;
+    i >= 10 && squares[i - width].classList.contains('bomb') && total++;
+    i >= 11 && !isLeftEdge && squares[i - 1 - width].classList.contains('bomb') && total++;
+    !isRightEdge && squares[i + 1].classList.contains('bomb') && total++;
+    i <= 89 && !isLeftEdge && squares[i - 1 + width].classList.contains('bomb') && total++;
+    i <= 88 && !isRightEdge && squares[i + 1 + width].classList.contains('bomb') && total++;
+    i <= 89 && squares[i + width].classList.contains('bomb') && total++;
+    return total;
   }
 
   //Durstenfeld  shuffle - https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
@@ -75,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (!square.classList.contains('checked') && (flags < bombAmount)) {
-      if (!square.classList.contains('flag')) {
+    if (!square.classList.contains('checked')) {
+      if (!square.classList.contains('flag') && (flags < bombAmount)) {
         square.classList.add('flag');
         square.innerHTML = ' 🚩';
         flags++;
@@ -98,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    let currentId = square.id;
+
     if (square.classList.contains('bomb')) {
       gameOver(square);
     } else {
@@ -107,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         square.classList.add(`n${total}`);
         square.innerHTML = total;
       } else {
-        checkSquare(square.id);
+        checkSquare(currentId);
       }
     }
 
@@ -123,38 +128,50 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       if (!isLeftEdge) {
         newId = parseInt(currentId) - 1;
+        clickNewSquare(newId);
       }
       if (currentId >= 10 && !isRightEdge) {
         newId = parseInt(currentId) + 1 - width;
+        clickNewSquare(newId);
       }
       if (currentId >= 10) {
-        newId = parseInt(currentId - width);
+        newId = parseInt(currentId) - width;
+        clickNewSquare(newId);
       }
       if (currentId >= 11 && !isLeftEdge) {
         newId = parseInt(currentId) - 1 - width;
+        clickNewSquare(newId);
       }
       if (currentId <= 98 && !isRightEdge) {
         newId = parseInt(currentId) + 1;
+        clickNewSquare(newId);
       }
       if (currentId <= 89 && !isLeftEdge) {
         newId = parseInt(currentId) - 1 + width;
+        clickNewSquare(newId);
       }
       if (currentId <= 88 && !isRightEdge) {
         newId = parseInt(currentId) + 1 + width;
+        clickNewSquare(newId);
       }
       if (currentId <= 89) {
         newId = parseInt(currentId) + width;
+        clickNewSquare(newId);
       }
 
-      let newSquare = document.getElementById(newId);
-      click(newSquare);
     }, 10);
   }
 
+  function clickNewSquare(newId) {
+    let newSquare = document.getElementById(newId);
+    click(newSquare);
+  }
+
   //game over
-  function gameOver(square) {
+  function gameOver() {
     result.innerHTML = 'BOOM! Game Over!';
     isGameOver = true;
+    stopCount();
 
     //show ALL the bombs
     squares.forEach(square => {
@@ -178,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (matches === bombAmount) {
         result.innerHTML = 'YOU WIN!';
         isGameOver = true;
+        stopCount();
       }
     }
   }
@@ -186,9 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
     result.innerHTML = '';
     isGameOver = false;
     grid.innerHTML = '';
-    // squares.forEach(square => square.classList.remove('bomb', 'flag', 'valid'));
-
-    stopCount();
+    squares = [];
+    flags = 0;
+    stopCount(true);
     startCount();
     createBoard();
   });
@@ -216,8 +234,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function stopCount() {
-    document.querySelector(".timer").innerHTML = '';
+  function stopCount(isNewGame) {
+    if (isNewGame) {
+      document.querySelector(".timer").innerHTML = '';
+    }
+
     clearTimeout(timer);
     hour = 0;
     minute = 0;
