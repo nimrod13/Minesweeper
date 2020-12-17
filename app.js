@@ -3,19 +3,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const flagsLeft = document.querySelector('.flags-left');
   const result = document.querySelector('.result');
   const width = 10;
-  const bombAmount = 20;
-  let flags = 0;
+  const bombCount = 20;
+  let flagsCount = 0;
   let squares = [];
   let isGameOver = false;
   let timer;
 
+  createBoard(true);
+
   //create Board
-  function createBoard() {
-    flagsLeft.innerHTML = bombAmount;
+  function createBoard(initialLoad) {
+    flagsLeft.innerHTML = bombCount;
 
     //get shuffled game array with random bombs
-    const bombsArray = Array(bombAmount).fill('bomb');
-    const emptyArray = Array(width * width - bombAmount).fill('valid');
+    const bombsArray = Array(bombCount).fill('bomb');
+    const emptyArray = Array(width * width - bombCount).fill('valid');
     const gameArray = emptyArray.concat(bombsArray);
     shuffleArray(gameArray);
 
@@ -27,29 +29,29 @@ document.addEventListener('DOMContentLoaded', () => {
       squares.push(square);
 
       square.addEventListener('click', (e) => {
+        initialLoad && startCount();
         click(square);
       });
 
       square.oncontextmenu = (e) => {
         e.preventDefault();
-        addFlag(square);
+        handleFlag(square);
       };
     }
 
     //add numbers
     for (let i = 0; i < squares.length; i++) {
-      const isLeftEdge = (i % width === 0);
-      const isRightEdge = (i % width === width - 1);
-
       if (squares[i].classList.contains('valid')) {
-        let total = calculateTotal(i, isLeftEdge, isRightEdge);
-        squares[i].setAttribute('data', total);
+        squares[i].setAttribute('data', calculateTotal(i));
       }
     }
   }
 
+  //calculate the number of surrounding bombs
+  function calculateTotal(i) {
+    const isLeftEdge = (i % width === 0);
+    const isRightEdge = (i % width === width - 1);
 
-  function calculateTotal(i, isLeftEdge, isRightEdge) {
     let total = 0;
     !isLeftEdge && squares[i - 1].classList.contains('bomb') && total++;
     i >= 10 && !isRightEdge && squares[i + 1 - width].classList.contains('bomb') && total++;
@@ -59,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     i <= 89 && !isLeftEdge && squares[i - 1 + width].classList.contains('bomb') && total++;
     i <= 88 && !isRightEdge && squares[i + 1 + width].classList.contains('bomb') && total++;
     i <= 89 && squares[i + width].classList.contains('bomb') && total++;
+
     return total;
   }
 
@@ -70,28 +73,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  createBoard();
-
   //add Flag with right click
-  function addFlag(square) {
+  function handleFlag(square) {
     if (isGameOver) {
       return;
     }
 
     if (!square.classList.contains('checked')) {
-      if (!square.classList.contains('flag') && (flags < bombAmount)) {
+      if (!square.classList.contains('flag') && (flagsCount < bombCount)) {
         square.classList.add('flag');
         square.innerHTML = ' 🚩';
-        flags++;
-        flagsLeft.innerHTML = bombAmount - flags;
+        flagsCount++;
+        flagsLeft.innerHTML = bombCount - flagsCount;
         checkForWin();
         return;
       }
 
       square.classList.remove('flag');
       square.innerHTML = '';
-      flags--;
-      flagsLeft.innerHTML = bombAmount - flags;
+      flagsCount--;
+      flagsLeft.innerHTML = bombCount - flagsCount;
     }
   }
 
@@ -192,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (squares[i].classList.contains('flag') && squares[i].classList.contains('bomb')) {
         matches++;
       }
-      if (matches === bombAmount) {
+      if (matches === bombCount) {
         result.innerHTML = 'YOU WIN!';
         isGameOver = true;
         stopCount();
@@ -205,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isGameOver = false;
     grid.innerHTML = '';
     squares = [];
-    flags = 0;
+    flagsCount = 0;
     stopCount(true);
     startCount();
     createBoard();
@@ -229,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startCount() {
     if (!timer_is_on) {
       timer_is_on = 1;
-      counter = 0;
+      resetTime();
       timedCount();
     }
   }
@@ -240,9 +241,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     clearTimeout(timer);
+    resetTime();
+    timer_is_on = 0;
+  }
+
+  function resetTime() {
     hour = 0;
     minute = 0;
     second = 0;
-    timer_is_on = 0;
+    counter = 0;
   }
 });
