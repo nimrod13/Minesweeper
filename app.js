@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const grid = document.querySelector('.grid');
+  const startButton = document.querySelector('.start-button');
   const flagsLeft = document.querySelector('.flags-left');
   const result = document.querySelector('.result');
   const width = 10;
@@ -171,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
   //game over
   function gameOver() {
     result.innerHTML = 'BOOM! Game Over!';
+    startButton.innerHTML = '&#128577';
     isGameOver = true;
     stopCount();
 
@@ -201,9 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  document.querySelector(".start-button").addEventListener("click", () => {
+  startButton.addEventListener("click", () => {
     result.innerHTML = '';
     isGameOver = false;
+    startButton.innerHTML = '&#128578';
     grid.innerHTML = '';
     squares = [];
     flagsCount = 0;
