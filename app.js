@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const grid = document.querySelector('.grid');
-  const flagsLeft = document.querySelector('#flags-left');
-  const result = document.querySelector('#result');
+  const flagsLeft = document.querySelector('.flags-left');
+  const result = document.querySelector('.result');
   const width = 10;
   const bombAmount = 20;
   let flags = 0;
