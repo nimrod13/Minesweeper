@@ -226,8 +226,12 @@ document.addEventListener('DOMContentLoaded', () => {
     hour = minute >= 60 ? Math.floor(minute / 60) : hour;
     second = counter % 60;
 
-    document.querySelector(".timer").innerHTML = `${ hour > 0 ? hour + ":" : ""}${minute}:${second}`;
+    document.querySelector(".timer").innerHTML = `${ hour > 0 ? hour + ":" : ""}${formatTime(minute)}:${formatTime(second)}`;
     timer = setTimeout(timedCount, 1000);
+  }
+
+  function formatTime(value) {
+    return value < 10 ? `0${value}` : `${value}`;
   }
 
   function startCount() {

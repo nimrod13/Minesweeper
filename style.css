@@ -18,7 +18,7 @@
 div {
   font-size: 25px;
   text-align: center;
-  font-family: 'Press Start 2P', cursive;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .valid,
@@ -39,7 +39,6 @@ div {
   box-sizing: border-box;
 }
 
-.one,
 .n1 {
   color: #e76346;
 }
@@ -75,6 +74,7 @@ div {
 .result {
   margin-top: 5px;
   color: #e76346;
+  font-family: 'Press Start 2P', cursive;
 }
 
 .timer {
