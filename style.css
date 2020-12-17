@@ -22,7 +22,7 @@ div {
 }
 
 .valid,
-.bomb {
+.unchecked {
   height: 40px;
   width: 40px;
   border: 5px solid;
