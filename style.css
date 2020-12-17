@@ -21,12 +21,11 @@ div {
   font-family: 'Roboto Mono', monospace;
 }
 
-.valid,
-.unchecked {
+.grid div:not(.checked) {
   height: 40px;
   width: 40px;
   border: 5px solid;
-  border-color: #f5f3eb #bab7a9 #bab7a9 #fff9db;
+  border-color: #f5f3eb #bab7a9 #bab7a9 #f2f9fe;
   box-sizing: border-box;
 }
 
@@ -39,36 +38,42 @@ div {
   box-sizing: border-box;
 }
 
-.n1 {
-  color: #e76346;
+.crossed {
+  background-image: url(Red_X.png);
+  background-size: cover;
 }
 
-.n2 {
+[data="1"] {
   color: #4199d3;
+
 }
 
-.n3 {
+[data="2"] {
   color: #57da59;
 }
 
-.n4 {
+[data="3"] {
+  color: #e76346;
+}
+
+[data="4"] {
+  color: #1d1f3f;
+}
+
+[data="5"] {
+  color: #743f13;
+}
+
+[data="6"] {
   color: #bb41d3;
 }
 
-.n5 {
-  color: #29315f;
-}
-
-.n6 {
+[data="7"] {
   color: #008b97
 }
 
-.n7 {
-  color: #444444
-}
-
-.n8 {
-  color: #4e0f0f
+[data="8"] {
+  color: #cec548
 }
 
 .result {

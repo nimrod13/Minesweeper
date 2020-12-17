@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let squares = [];
   let isGameOver = false;
   let timer;
+  let gridMap = new Map();
 
   createBoard(true);
 
@@ -22,10 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameArray = emptyArray.concat(bombsArray);
     shuffleArray(gameArray);
 
+    gameArray.map((item, index) => gridMap.set(index, item === 'unchecked' ? true : false));
+
     for (let i = 0; i < width * width; i++) {
       const square = document.createElement('div');
       square.setAttribute('id', i);
-      square.classList.add(gameArray[i]);
       grid.appendChild(square);
       squares.push(square);
 
@@ -42,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //add numbers
     for (let i = 0; i < squares.length; i++) {
-      if (squares[i].classList.contains('valid')) {
+      if (gridMap.get(i) === false) {
         squares[i].setAttribute('data', calculateTotal(i));
       }
     }
@@ -54,14 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const isRightEdge = (i % width === width - 1);
 
     let total = 0;
-    !isLeftEdge && squares[i - 1].classList.contains('unchecked') && total++;
-    i >= 10 && !isRightEdge && squares[i + 1 - width].classList.contains('unchecked') && total++;
-    i >= 10 && squares[i - width].classList.contains('unchecked') && total++;
-    i >= 11 && !isLeftEdge && squares[i - 1 - width].classList.contains('unchecked') && total++;
-    !isRightEdge && squares[i + 1].classList.contains('unchecked') && total++;
-    i <= 89 && !isLeftEdge && squares[i - 1 + width].classList.contains('unchecked') && total++;
-    i <= 88 && !isRightEdge && squares[i + 1 + width].classList.contains('unchecked') && total++;
-    i <= 89 && squares[i + width].classList.contains('unchecked') && total++;
+    !isLeftEdge && gridMap.get(i - 1) && total++;
+    i >= 10 && !isRightEdge && gridMap.get(i + 1 - width) && total++;
+    i >= 10 && gridMap.get(i - width) && total++;
+    i >= 11 && !isLeftEdge && gridMap.get(i - 1 - width) && total++;
+    !isRightEdge && gridMap.get(i + 1) && total++;
+    i <= 89 && !isLeftEdge && gridMap.get(i - 1 + width) && total++;
+    i <= 88 && !isRightEdge && gridMap.get(i + 1 + width) && total++;
+    i <= 89 && gridMap.get(i + width) && total++;
 
     return total;
   }
@@ -81,19 +83,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!square.classList.contains('checked')) {
-      if (!square.classList.contains('flag') && (flagsCount < bombCount)) {
+      if (square.classList.contains('flag')) {
+        square.classList.remove('flag');
+        square.innerHTML = '';
+        flagsCount--;
+        flagsLeft.innerHTML = bombCount - flagsCount;
+        return;
+      }
+
+      if (flagsCount < bombCount) {
         square.classList.add('flag');
         square.innerHTML = ' 🚩';
         flagsCount++;
         flagsLeft.innerHTML = bombCount - flagsCount;
         checkForWin();
-        return;
       }
-
-      square.classList.remove('flag');
-      square.innerHTML = '';
-      flagsCount--;
-      flagsLeft.innerHTML = bombCount - flagsCount;
     }
   }
 
@@ -103,18 +107,18 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    let currentId = square.id;
+    let currentId = parseInt(square.id);
 
-    if (square.classList.contains('unchecked')) {
+    if (gridMap.get(currentId) === true) {
+      square.style.backgroundColor = 'red';
       gameOver(square);
     } else {
       let total = square.getAttribute('data');
       if (total != 0) {
         square.classList.add('checked');
-        square.classList.add(`n${total}`);
         square.innerHTML = total;
       } else {
-        checkSquare(currentId);
+        checkSquare(currentId); //if there are no surrounding bombs, we continue to check the neighbours
       }
     }
 
@@ -161,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clickNewSquare(newId);
       }
 
-    }, 10);
+    }, 0);
   }
 
   function clickNewSquare(newId) {
@@ -178,32 +182,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //show ALL the bombs
     squares.forEach(square => {
-      if (square.classList.contains('unchecked')) {
+      if (gridMap.get(parseInt(square.id)) === true) {
         square.innerHTML = '💣';
-        square.classList.remove('unchecked');
         square.classList.add('checked');
+      }
+
+      if (square.classList.contains('flag') && gridMap.get(parseInt(square.id)) === true) {
+        square.classList.add('crossed');
       }
     });
   }
 
   //check for win
   function checkForWin() {
-    ///simplified win argument
-    let matches = 0;
+    let matches = squares.filter((item, index) => item.classList.contains('flag') && gridMap.get(index) === true);
 
-    for (let i = 0; i < squares.length; i++) {
-      if (squares[i].classList.contains('flag') && squares[i].classList.contains('unchecked')) {
-        matches++;
-      }
-      if (matches === bombCount) {
-        result.innerHTML = 'YOU WIN!';
-        isGameOver = true;
-        stopCount();
-      }
+    if (matches.length === bombCount) {
+      result.innerHTML = 'YOU WIN!';
+      isGameOver = true;
+      stopCount();
     }
   }
 
   startButton.addEventListener("click", () => {
+    resetGame();
+    createBoard();
+  });
+
+  function resetGame() {
     result.innerHTML = '';
     isGameOver = false;
     startButton.innerHTML = '&#128578';
@@ -212,8 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     flagsCount = 0;
     stopCount(true);
     startCount();
-    createBoard();
-  });
+  }
 
   let hour, minute, second = 0;
   let timer_is_on = 0;
@@ -223,10 +228,15 @@ document.addEventListener('DOMContentLoaded', () => {
     counter++;
 
     minute = counter >= 60 ? Math.floor(counter / 60) : minute;
-    hour = minute >= 60 ? Math.floor(minute / 60) : hour;
+
+    if (minute > 60) {
+      hour = Math.floor(minute / 60);
+      minute = minute % 60;
+    }
+
     second = counter % 60;
 
-    document.querySelector(".timer").innerHTML = `${ hour > 0 ? hour + ":" : ""}${formatTime(minute)}:${formatTime(second)}`;
+    document.querySelector(".timer").innerHTML = `${ hour > 0 ? formatTime(hour) + ":" : ""}${formatTime(minute)}:${formatTime(second)}`;
     timer = setTimeout(timedCount, 1000);
   }
 
