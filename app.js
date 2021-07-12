@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   createBoard(true);
 
-  //create Board
+  //Create board
   function createBoard(initialLoad) {
     flagsLeft.innerHTML = bombCount;
 
